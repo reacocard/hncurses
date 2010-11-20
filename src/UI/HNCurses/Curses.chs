@@ -50,9 +50,10 @@ module UI.HNCurses.Curses (
     ) where
 
 
+import Control.Exception
 import Foreign.Marshal.Alloc( alloca )
 import Foreign.Marshal.Utils( fromBool, toBool )
-import Foreign.C.Types( CInt, CUInt, CChar, CUChar )
+import Foreign.C.Types
 import Foreign.C.String( peekCString, withCString )
 import Foreign.Ptr( Ptr )
 import System.IO.Unsafe( unsafePerformIO )
@@ -63,8 +64,9 @@ import System.IO.Unsafe( unsafePerformIO )
 #include "ncurses.h"
 #include "cbits.h"
 
--- ERR = -1
--- OK = 0
+
+ckErr :: CInt -> IO ()
+ckErr i = if i == -1 then throw (userError "Curses returned ERR") else return ()
 
 -- data definitions
 
@@ -79,7 +81,7 @@ type ChType = {#type chtype#}
     {} -> `Window' id#}
 
 {#fun endwin as endWin
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 
 {#fun get_stdscr as getStdScr
     {} -> `Window' id#}
@@ -97,23 +99,23 @@ screenSize = do
     return (rows, cols)
 
 {#fun raw as enableRaw
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 {#fun noraw as disableRaw
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 raw :: Bool -> IO ()
 raw enable = if enable then enableRaw else disableRaw
 
 {#fun cbreak as enableCbreak
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 {#fun nocbreak as disableCbreak
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 cbreak :: Bool -> IO ()
 cbreak enable = if enable then enableCbreak else disableCbreak
 
 {#fun echo as enableEcho
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 {#fun noecho as disableEcho
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 echo :: Bool -> IO ()
 echo enable = if enable then enableEcho else disableEcho
 
@@ -121,14 +123,14 @@ echo enable = if enable then enableEcho else disableEcho
     {id `Window', fromIntegral `Int'} -> `()' id-#}
 
 {#fun nl as enableNl
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 {#fun nonl as disableNl
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 nl :: Bool -> IO ()
 nl enable = if enable then enableNl else disableNl
 
 {#fun keypad as keypad
-    {id `Window', fromBool `Bool'} -> `CInt' id-#}
+    {id `Window', fromBool `Bool'} -> `()' ckErr*-#}
 
 {#fun getcury as getCurY
     {id `Window'} -> `Int' fromIntegral#}
@@ -165,42 +167,42 @@ getMaxYX win = do
 -- INPUT
 
 {#fun wgetch as wGetCh
-    {id `Window'} -> `CInt' id-#}
+    {id `Window'} -> `CInt' id#}
 
 {#fun wgetnstr as wGetNStr
-    {id `Window', alloca- `String' peekCString*, fromIntegral `Int'} -> `CInt' id-#}
+    {id `Window', alloca- `String' peekCString*, fromIntegral `Int'} -> `()' ckErr*-#}
 
 -- OUTPUT
 
 {#fun beep as beep
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 
 {#fun flash as flash
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 
 {#fun werase as wErase
-    {id `Window'} -> `CInt' id-#}
+    {id `Window'} -> `()' ckErr*-#}
 
 {#fun wclear as wClear
-    {id `Window'} -> `CInt' id-#}
+    {id `Window'} -> `()' ckErr*-#}
 
 {#fun wmove as wMove
-    {id `Window', fromIntegral `Int', fromIntegral `Int'} -> `CInt' id-#}
+    {id `Window', fromIntegral `Int', fromIntegral `Int'} -> `()' ckErr*-#}
 
 {#fun waddch as wAddCh
-    {id `Window', id `ChType'} -> `CInt' id-#}
+    {id `Window', id `ChType'} -> `()' ckErr*-#}
 
 {#fun waddnstr as wAddNStr
-    {id `Window', withCString* `String' , fromIntegral `Int'} -> `CInt' id-#}
+    {id `Window', withCString* `String' , fromIntegral `Int'} -> `()' ckErr*-#}
 
 {#fun wrefresh as wRefresh
-    {id `Window'} -> `CInt' id-#}
+    {id `Window'} -> `()' ckErr*-#}
 
 {#fun wnoutrefresh as wNoOutRefresh
-    {id `Window'} -> `CInt' id-#}
+    {id `Window'} -> `()' ckErr*-#}
 
 {#fun doupdate as doUpdate
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 
 --  wAttrOn(win, attr)
 --  wAttrOff(win, attr)
@@ -213,10 +215,10 @@ getMaxYX win = do
 --    {id `Window', fromIntegral `Int',   
 
 {#fun wvline as wVLine
-    {id `Window', id `ChType', fromIntegral `Int'} -> `CInt' id-#}
+    {id `Window', id `ChType', fromIntegral `Int'} -> `()' ckErr*-#}
 
 {#fun whline as wHLine
-    {id `Window', id `ChType', fromIntegral `Int'} -> `CInt' id-#}
+    {id `Window', id `ChType', fromIntegral `Int'} -> `()' ckErr*-#}
 
 -- WINDOWS
 
@@ -224,16 +226,18 @@ getMaxYX win = do
     {fromIntegral `Int', fromIntegral `Int', fromIntegral `Int', fromIntegral `Int'} -> `Window' id#}
 
 {#fun delwin as delWin
-    {id `Window'} -> `CInt' id-#}
+    {id `Window'} -> `()' ckErr*-#}
 
 {#fun mvwin as mvWin
-    {id `Window', fromIntegral `Int', fromIntegral `Int'} -> `CInt' id-#}
+    {id `Window', fromIntegral `Int', fromIntegral `Int'} -> `()' ckErr*-#}
 
+-- TODO: use Maybe to allow default chars
 {#fun box as box
-    {id `Window', id `ChType', id `ChType'} -> `CInt' id-#}
+    {id `Window', id `ChType', id `ChType'} -> `()' ckErr*-#}
 
+-- TODO: use Maybe to allow default chars
 {#fun wborder as wBorder
-    {id `Window', id `ChType', id `ChType', id `ChType', id `ChType', id `ChType', id `ChType', id `ChType', id `ChType'} -> `CInt' id-#}
+    {id `Window', id `ChType', id `ChType', id `ChType', id `ChType', id `ChType', id `ChType', id `ChType', id `ChType'} -> `()' ckErr*-#}
 
 -- COLOR
 
@@ -241,7 +245,7 @@ getMaxYX win = do
     {} -> `Bool' toBool#}
 
 {#fun start_color as startColor
-    {} -> `CInt' id-#}
+    {} -> `()' ckErr*-#}
 
 --  initPair(num, fg, bg)
 
