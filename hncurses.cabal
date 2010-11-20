@@ -1,7 +1,7 @@
 Name:           hncurses
 Version:        0.1
 Cabal-version:  >= 1.2
-License:        BSD3
+License:        MIT
 License-File:   LICENSE
 Author:         Aren Olson <reacocard@gmail.com>
 Maintainer:     Aren Olson <reacocard@gmail.com>
