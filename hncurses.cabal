@@ -1,0 +1,27 @@
+Name:           hncurses
+Version:        0.1
+Cabal-version:  >= 1.2
+License:        BSD3
+License-File:   LICENSE
+Author:         Aren Olson <reacocard@gmail.com>
+Maintainer:     Aren Olson <reacocard@gmail.com>
+Homepage:       http://reacocard.github.com/hncurses/
+Synopsis:       Simple bindings to NCurses
+Build-Type:     Simple
+
+
+Library
+    Build-Depends:  base >= 4
+    Build-tools:        c2hs
+    Hs-Source-Dirs: src
+    exposed-modules:
+        UI.HNCurses.Curses
+    extensions:     ForeignFunctionInterface
+    Hs-Source-Dirs: src
+    Extra-libraries: ncurses
+    c-sources:       src/UI/HNCurses/cbits.c
+    includes:        cbits.h
+    include-dirs: src/UI/HNCurses/
+
+
+
