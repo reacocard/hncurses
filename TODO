@@ -1,3 +1,11 @@
 
+bind all w- variants of ncurses core api
+    - plain and mv- variants are ignored beacause stdScr and move are trivially available
+    - should be stubs in for everything now, just needs to be made functonal
+    - need to figure out appropriate datatypes for everything, and any needed conversion functions
+        - in particular, wGetCh, attributes, special glyphs, and colors
+
+write testcases
+
 bind panels, form and menu libraries
 
